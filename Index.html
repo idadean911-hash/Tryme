@@ -3,73 +3,709 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BetaVoip Terminal</title>
+    <title>Professional SIP WebRTC Dialer</title>
     <style>
-        :root { --neon: #00d4ff; --bg: #0a0b10; }
-        body { background: var(--bg); color: white; font-family: 'Courier New', monospace; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
-        .terminal { width: 340px; padding: 25px; border: 1px solid var(--neon); border-radius: 15px; background: rgba(10, 11, 16, 0.95); box-shadow: 0 0 20px rgba(0,212,255,0.2); }
-        h2 { color: var(--neon); font-size: 1.1rem; margin-bottom: 20px; text-align: center; letter-spacing: 3px; border-bottom: 1px solid var(--neon); padding-bottom: 10px; }
-        label { font-size: 0.65rem; color: #888; text-transform: uppercase; display: block; margin-top: 10px; }
-        input { width: 100%; padding: 10px; margin: 5px 0 15px 0; background: rgba(255,255,255,0.05); border: 1px solid #333; border-radius: 4px; color: var(--neon); outline: none; box-sizing: border-box; }
-        input:focus { border-color: var(--neon); box-shadow: 0 0 5px var(--neon); }
-        button { width: 100%; padding: 15px; background: var(--neon); color: black; border: none; border-radius: 4px; font-weight: bold; cursor: pointer; transition: 0.3s; margin-top: 10px; }
-        button:hover { background: #fff; box-shadow: 0 0 20px var(--neon); }
-        #overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); flex-direction: column; justify-content: center; align-items: center; z-index: 100; text-align: center; }
-        .pulse { width: 60px; height: 60px; background: var(--neon); border-radius: 50%; animation: pulse-ring 1.5s infinite; margin-bottom: 20px; }
-        @keyframes pulse-ring { 0% { transform: scale(0.8); opacity: 1; } 100% { transform: scale(1.3); opacity: 0; } }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .dialer-container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            width: 100%;
+            max-width: 500px;
+            overflow: hidden;
+        }
+
+        .dialer-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .dialer-header h1 {
+            font-size: 24px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .dialer-header p {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        .security-banner {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 15px 20px;
+            margin: 20px;
+            border-radius: 8px;
+            font-size: 14px;
+            color: #856404;
+        }
+
+        .security-banner strong {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 16px;
+        }
+
+        .security-banner ul {
+            margin-left: 20px;
+            margin-top: 8px;
+        }
+
+        .status-panel {
+            background: #f8f9fa;
+            margin: 0 20px 20px 20px;
+            padding: 15px;
+            border-radius: 10px;
+            border: 1px solid #e9ecef;
+        }
+
+        .status-label {
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #6c757d;
+            margin-bottom: 5px;
+        }
+
+        .status-value {
+            font-weight: 600;
+            color: #28a745;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .status-value.connected {
+            color: #28a745;
+        }
+
+        .status-value.disconnected {
+            color: #dc3545;
+        }
+
+        .status-value.connecting {
+            color: #ffc107;
+        }
+
+        .call-form {
+            padding: 0 20px 20px 20px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #495057;
+            font-size: 14px;
+        }
+
+        .form-group label i {
+            color: #667eea;
+            margin-right: 6px;
+        }
+
+        .input-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .input-icon {
+            position: absolute;
+            left: 12px;
+            color: #adb5bd;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 12px 12px 12px 40px;
+            border: 2px solid #e9ecef;
+            border-radius: 10px;
+            font-size: 15px;
+            transition: all 0.3s ease;
+            background: white;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .form-control::placeholder {
+            color: #adb5bd;
+        }
+
+        .helper-text {
+            font-size: 12px;
+            color: #6c757d;
+            margin-top: 5px;
+        }
+
+        .button-group {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-top: 25px;
+        }
+
+        .btn {
+            padding: 14px 20px;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .btn-call {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            color: white;
+            box-shadow: 0 4px 15px rgba(40, 167, 69, 0.3);
+        }
+
+        .btn-call:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(40, 167, 69, 0.4);
+        }
+
+        .btn-hangup {
+            background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+            color: white;
+            box-shadow: 0 4px 15px rgba(220, 53, 69, 0.3);
+        }
+
+        .btn-hangup:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(220, 53, 69, 0.4);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .call-log {
+            margin: 20px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            border: 1px solid #e9ecef;
+            max-height: 150px;
+            overflow-y: auto;
+        }
+
+        .call-log h3 {
+            font-size: 14px;
+            color: #495057;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .log-entry {
+            font-size: 13px;
+            padding: 8px;
+            border-bottom: 1px solid #e9ecef;
+            color: #6c757d;
+        }
+
+        .log-entry:last-child {
+            border-bottom: none;
+        }
+
+        .log-entry .timestamp {
+            color: #adb5bd;
+            font-size: 11px;
+            margin-right: 8px;
+        }
+
+        .log-entry.success {
+            color: #28a745;
+        }
+
+        .log-entry.error {
+            color: #dc3545;
+        }
+
+        .footer-note {
+            padding: 15px 20px;
+            background: #f1f3f5;
+            border-top: 1px solid #dee2e6;
+            font-size: 12px;
+            color: #868e96;
+            text-align: center;
+        }
+
+        .footer-note a {
+            color: #667eea;
+            text-decoration: none;
+        }
+
+        .footer-note a:hover {
+            text-decoration: underline;
+        }
+
+        .indicator {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 8px;
+        }
+
+        .indicator.connected {
+            background: #28a745;
+            box-shadow: 0 0 0 2px rgba(40, 167, 69, 0.2);
+            animation: pulse 2s infinite;
+        }
+
+        .indicator.disconnected {
+            background: #dc3545;
+        }
+
+        .indicator.connecting {
+            background: #ffc107;
+            animation: blink 1s infinite;
+        }
+
+        @keyframes pulse {
+            0% {
+                box-shadow: 0 0 0 0 rgba(40, 167, 69, 0.4);
+            }
+            70% {
+                box-shadow: 0 0 0 6px rgba(40, 167, 69, 0);
+            }
+            100% {
+                box-shadow: 0 0 0 0 rgba(40, 167, 69, 0);
+            }
+        }
+
+        @keyframes blink {
+            0%, 50%, 100% { opacity: 1; }
+            25%, 75% { opacity: 0.5; }
+        }
     </style>
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- JsSIP library -->
+    <script src="https://unpkg.com/jssip@3.10.1/dist/jssip.min.js"></script>
 </head>
 <body>
+    <div class="dialer-container">
+        <div class="dialer-header">
+            <h1><i class="fas fa-phone-alt" style="margin-right: 10px;"></i>Professional SIP WebRTC Dialer</h1>
+            <p>Enterprise-grade calling with custom Caller ID</p>
+        </div>
 
-    <div class="terminal">
-        <h2>BETA-VOIP_V1</h2>
-        
-        <label>Caller ID Name</label>
-        <input type="text" id="callerName" placeholder="e.g. Google Support">
+        <!-- SECURITY WARNING BANNER - URGENT -->
+        <div class="security-banner">
+            <strong><i class="fas fa-exclamation-triangle" style="margin-right: 8px;"></i>CRITICAL SECURITY ALERT</strong>
+            
+        </div>
 
-        <label>Display Number (Spoof)</label>
-        <input type="tel" id="spoof" placeholder="18005550199">
+        <!-- Connection Status -->
+        <div class="status-panel">
+            <div class="status-label">Connection Status</div>
+            <div id="connectionStatus" class="status-value">
+                <span id="statusIndicator" class="indicator disconnected"></span>
+                <span id="statusText">Initializing...</span>
+            </div>
+        </div>
 
-        <label>Destination (Target)</label>
-        <input type="tel" id="target" placeholder="15550001111">
+        <!-- Main Call Form -->
+        <div class="call-form">
+            <div class="form-group">
+                <label for="callerId">
+                    <i class="fas fa-id-card"></i>
+                    Outbound Caller ID (Number to Spoof)
+                </label>
+                <div class="input-wrapper">
+                    <i class="fas fa-phone input-icon"></i>
+                    <input type="tel" id="callerId" class="form-control" 
+                           placeholder="+1234567890" 
+                           value="+1234567890"
+                           autocomplete="off">
+                </div>
+                <div class="helper-text">
+                    <i class="fas fa-info-circle"></i>
+                    The number that will appear on the recipient's caller ID
+                </div>
+            </div>
 
-        <button onclick="executeInjection()">INJECT SETTINGS</button>
-    </div>
+            <div class="form-group">
+                <label for="targetNumber">
+                    <i class="fas fa-bullseye"></i>
+                    Target Number (Recipient)
+                </label>
+                <div class="input-wrapper">
+                    <i class="fas fa-phone-alt input-icon"></i>
+                    <input type="tel" id="targetNumber" class="form-control" 
+                           placeholder="+1987654321" 
+                           value="+1987654321"
+                           autocomplete="off">
+                </div>
+                <div class="helper-text">
+                    <i class="fas fa-info-circle"></i>
+                    The number you want to call
+                </div>
+            </div>
 
-    <div id="overlay">
-        <div class="pulse"></div>
-        <div id="status" style="color: var(--neon); font-size: 1.2rem;">TRANSMITTING...</div>
-        <p id="details" style="font-size: 0.8rem; color: #555; margin-top: 10px;"></p>
-        <button onclick="location.reload()" style="background: transparent; color: #ff4b4b; border: 1px solid #ff4b4b; width: auto; padding: 10px 20px;">ABORT</button>
+            <div class="form-group">
+                <label for="displayName">
+                    <i class="fas fa-user-tag"></i>
+                    Display Name (Optional)
+                </label>
+                <div class="input-wrapper">
+                    <i class="fas fa-user input-icon"></i>
+                    <input type="text" id="displayName" class="form-control" 
+                           placeholder="Custom Caller" 
+                           value="Business Line"
+                           autocomplete="off">
+                </div>
+                <div class="helper-text">
+                    <i class="fas fa-info-circle"></i>
+                    Name shown on the recipient's phone (if supported)
+                </div>
+            </div>
+
+            <!-- Call Control Buttons -->
+            <div class="button-group">
+                <button id="callBtn" class="btn btn-call" onclick="makeCall()">
+                    <i class="fas fa-phone"></i>
+                    Call Now
+                </button>
+                <button id="hangupBtn" class="btn btn-hangup" onclick="hangup()" disabled>
+                    <i class="fas fa-phone-slash"></i>
+                    Hang Up
+                </button>
+            </div>
+        </div>
+
+        <!-- Call Log -->
+        <div class="call-log">
+            <h3><i class="fas fa-history"></i> Call Activity Log</h3>
+            <div id="callLog">
+                <div class="log-entry">
+                    <span class="timestamp">System:</span> Ready to initialize SIP connection
+                </div>
+            </div>
+        </div>
+
+        <div class="footer-note">
+            <i class="fas fa-shield-alt"></i> 
+            </a>
+        </div>
     </div>
 
     <script>
-        async function executeInjection() {
-            const target = document.getElementById('target').value;
-            const spoof = document.getElementById('spoof').value;
-            const callerName = document.getElementById('callerName').value;
+        // Configuration
+        // ⚠️ CRITICAL: These credentials are exposed and must be rotated immediately
+        const SIP_CONFIG = {
+            username: 'kixiez9CgW78GoE5SJUk0mfN30902464222277955184',
+            password: 'cujl7UWA5kbmrxsVEK',
+            server: 'phone.plivo.com',
+            port: 5060
+        };
 
-            if(!target || !spoof || !callerName) return alert("All fields are required for encryption.");
+        // Application state
+        let phone = null;
+        let currentSession = null;
+        let callLog = [];
 
-            document.getElementById('overlay').style.display = 'flex';
+        // DOM Elements
+        const statusIndicator = document.getElementById('statusIndicator');
+        const statusText = document.getElementById('statusText');
+        const callBtn = document.getElementById('callBtn');
+        const hangupBtn = document.getElementById('hangupBtn');
+        const callLogDiv = document.getElementById('callLog');
+        const callerIdInput = document.getElementById('callerId');
+        const targetNumberInput = document.getElementById('targetNumber');
+        const displayNameInput = document.getElementById('displayName');
 
-            try {
-                const response = await fetch('/api/makeCall', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ target, spoof, callerName })
-                });
+        // Utility Functions
+        function addLogEntry(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString();
+            const logEntry = document.createElement('div');
+            logEntry.className = `log-entry ${type}`;
+            logEntry.innerHTML = `<span class="timestamp">${timestamp}:</span> ${message}`;
+            callLogDiv.appendChild(logEntry);
+            callLogDiv.scrollTop = callLogDiv.scrollHeight;
+            
+            // Store in array
+            callLog.push({ timestamp, message, type });
+        }
 
-                if (response.ok) {
-                    document.getElementById('status').innerText = "INJECTION SUCCESSFUL";
-                    document.getElementById('details').innerText = "Settings updated. You may now place the call.";
+        function updateConnectionStatus(status, statusClass) {
+            statusIndicator.className = `indicator ${statusClass}`;
+            statusText.textContent = status;
+            
+            if (statusClass === 'connected') {
+                statusText.style.color = '#28a745';
+                callBtn.disabled = false;
+            } else {
+                callBtn.disabled = true;
+                hangupBtn.disabled = true;
+                if (statusClass === 'disconnected') {
+                    statusText.style.color = '#dc3545';
                 } else {
-                    document.getElementById('status').innerText = "API ERROR";
+                    statusText.style.color = '#ffc107';
                 }
-            } catch (err) {
-                document.getElementById('status').innerText = "NETWORK FAILURE";
             }
         }
+
+        function validatePhoneNumber(number) {
+            // Basic E.164 format validation
+            const e164Regex = /^\+[1-9]\d{1,14}$/;
+            return e164Regex.test(number);
+        }
+
+        // Initialize SIP Connection
+        function initializeSIP() {
+            try {
+                addLogEntry('Initializing SIP connection...', 'info');
+                updateConnectionStatus('Connecting...', 'connecting');
+
+                // Create WebSocket connection
+                const socket = new JsSIP.WebSocketInterface(`wss://${SIP_CONFIG.server}:${SIP_CONFIG.port}`);
+                
+                // Configure SIP User Agent
+                const configuration = {
+                    sockets: [socket],
+                    uri: `sip:${SIP_CONFIG.username}@${SIP_CONFIG.server}`,
+                    password: SIP_CONFIG.password,
+                    display_name: 'Professional Dialer',
+                    // Logging
+                    log: {
+                        level: 'error'
+                    },
+                    // Session Timers
+                    session_timers: false,
+                    // Transport options
+                    ws_extra: {
+                        maxReconnectionAttempts: 5,
+                        reconnectionTimeout: 2000
+                    }
+                };
+
+                phone = new JsSIP.UA(configuration);
+
+                // Event Handlers
+                phone.on('connected', () => {
+                    addLogEntry('SIP connected successfully', 'success');
+                    updateConnectionStatus('Connected', 'connected');
+                });
+
+                phone.on('disconnected', () => {
+                    addLogEntry('SIP disconnected', 'info');
+                    updateConnectionStatus('Disconnected', 'disconnected');
+                    currentSession = null;
+                });
+
+                phone.on('registered', () => {
+                    addLogEntry('Registered with SIP server', 'success');
+                });
+
+                phone.on('unregistered', () => {
+                    addLogEntry('Unregistered from SIP server', 'info');
+                });
+
+                phone.on('registrationFailed', (data) => {
+                    addLogEntry(`Registration failed: ${data.cause}`, 'error');
+                    updateConnectionStatus('Registration Failed', 'disconnected');
+                });
+
+                phone.on('newRTCSession', (data) => {
+                    currentSession = data.session;
+                    addLogEntry('New call session created', 'info');
+                    
+                    // Call session event handlers
+                    currentSession.on('progress', () => {
+                        addLogEntry('Call in progress...', 'info');
+                        hangupBtn.disabled = false;
+                    });
+
+                    currentSession.on('confirmed', () => {
+                        addLogEntry('Call connected', 'success');
+                        hangupBtn.disabled = false;
+                        callBtn.disabled = true;
+                    });
+
+                    currentSession.on('ended', () => {
+                        addLogEntry('Call ended', 'info');
+                        hangupBtn.disabled = true;
+                        callBtn.disabled = false;
+                        currentSession = null;
+                    });
+
+                    currentSession.on('failed', (data) => {
+                        addLogEntry(`Call failed: ${data.cause}`, 'error');
+                        hangupBtn.disabled = true;
+                        callBtn.disabled = false;
+                        currentSession = null;
+                    });
+
+                    currentSession.on('accepted', () => {
+                        addLogEntry('Call accepted', 'success');
+                    });
+                });
+
+                phone.start();
+                addLogEntry('SIP client started', 'success');
+
+            } catch (error) {
+                addLogEntry(`Initialization error: ${error.message}`, 'error');
+                updateConnectionStatus('Error', 'disconnected');
+                console.error('SIP Initialization Error:', error);
+            }
+        }
+
+        // Make Call Function
+        function makeCall() {
+            // Validate inputs
+            const callerId = callerIdInput.value.trim();
+            const targetNumber = targetNumberInput.value.trim();
+            const displayName = displayNameInput.value.trim() || 'Custom Caller';
+
+            if (!callerId || !targetNumber) {
+                addLogEntry('Error: Caller ID and Target Number are required', 'error');
+                alert('Please fill in both Caller ID and Target Number');
+                return;
+            }
+
+            if (!validatePhoneNumber(callerId)) {
+                addLogEntry('Error: Caller ID must be in E.164 format (e.g., +1234567890)', 'error');
+                alert('Caller ID must be in E.164 format (e.g., +1234567890)');
+                return;
+            }
+
+            if (!validatePhoneNumber(targetNumber)) {
+                addLogEntry('Error: Target Number must be in E.164 format (e.g., +1234567890)', 'error');
+                alert('Target Number must be in E.164 format (e.g., +1234567890)');
+                return;
+            }
+
+            if (!phone || !phone.isConnected()) {
+                addLogEntry('Error: Phone not connected', 'error');
+                alert('SIP client not connected. Please wait for connection.');
+                return;
+            }
+
+            try {
+                addLogEntry(`Initiating call from ${callerId} to ${targetNumber}`, 'info');
+
+                // Prepare call options with custom headers
+                const options = {
+                    eventHandlers: {
+                        progress: (e) => console.log('Call progress', e),
+                        failed: (e) => console.error('Call failed', e),
+                        confirmed: (e) => console.log('Call confirmed', e),
+                        ended: (e) => console.log('Call ended', e)
+                    },
+                    // Custom headers for Caller ID manipulation
+                    extraHeaders: [
+                        `From: "${displayName}" <sip:${callerId}@${SIP_CONFIG.server}>`,
+                        `P-Asserted-Identity: <sip:${callerId}@${SIP_CONFIG.server}>`,
+                        `X-From: <sip:${callerId}@${SIP_CONFIG.server}>`,
+                        `Call-ID: ${generateCallID()}`,
+                        `X-Caller-ID: ${callerId}`,
+                        `Remote-Party-ID: "${displayName}" <sip:${callerId}@${SIP_CONFIG.server}>`
+                    ],
+                    mediaConstraints: {
+                        audio: true,
+                        video: false
+                    },
+                    rtcOfferConstraints: {
+                        offerToReceiveAudio: true,
+                        offerToReceiveVideo: false
+                    }
+                };
+
+                // Make the call
+                phone.call(`sip:${targetNumber}@${SIP_CONFIG.server}`, options);
+                
+                // Update UI
+                callBtn.disabled = true;
+                addLogEntry(`Call initiated to ${targetNumber} from ${callerId}`, 'success');
+
+            } catch (error) {
+                addLogEntry(`Call error: ${error.message}`, 'error');
+                callBtn.disabled = false;
+                console.error('Call Error:', error);
+            }
+        }
+
+        // Hang Up Function
+        function hangup() {
+            if (currentSession) {
+                addLogEntry('Terminating call...', 'info');
+                currentSession.terminate();
+                hangupBtn.disabled = true;
+            } else {
+                addLogEntry('No active call to hang up', 'info');
+            }
+        }
+
+        // Utility function to generate unique Call-ID
+        function generateCallID() {
+            return `${Date.now()}-${Math.random().toString(36).substring(2, 15)}`;
+        }
+
+        // Security Notice on Page Load
+        window.onload = function() {
+            addLogEntry('⚠️ CRITICAL: Your SIP credentials are exposed. Contact Kixie support immediately.', 'error');
+            initializeSIP();
+
+            // Warn before unload if call in progress
+            window.onbeforeunload = function() {
+                if (currentSession) {
+                    return 'A call is in progress. Are you sure you want to leave?';
+                }
+            };
+        };
+
+        // Cleanup on page unload
+        window.onunload = function() {
+            if (phone) {
+                phone.stop();
+            }
+        };
+
+        // Additional security validation
+        function validateCallerIdOwnership() {
+            addLogEntry('⚠️ SECURITY: Unable to validate if you own this Caller ID. Ensure compliance with laws.', 'error');
+        }
+
+        // Run validation after load
+        setTimeout(validateCallerIdOwnership, 2000);
     </script>
 </body>
 </html>
