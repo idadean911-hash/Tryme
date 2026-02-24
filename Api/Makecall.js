@@ -2,9 +2,9 @@
 export default async function handler(req, res) {
     if (req.method !== 'POST') return res.status(405).send('Method Not Allowed');
 
-    const { target, spoof } = req.body;
+    const { target, spoof, callerName } = req.body;
 
-    // Your static credentials
+    // Your Account Identifiers
     const apiKey = "5320c2ac4a1d28fadbdf8c03534a891d";
     const businessId = 15065;
     const userId = 296493;
@@ -17,10 +17,10 @@ export default async function handler(req, res) {
         apikey: apiKey,
         apiKey: apiKey,
         call: "updateUserSettings3",
-        calleridName: "BetaVoip",
-        calleridNumber: parseInt(spoof.replace(/\D/g, '')), // The number you want to spoof
-        smsnumber: myStaticNumber,                          // Your static Kixie bridge
-        firstName: "Beta",
+        calleridName: callerName || "Private", // Custom Name
+        calleridNumber: parseInt(spoof.replace(/\D/g, '')), // Custom Number
+        smsnumber: myStaticNumber, 
+        firstName: callerName || "Beta",
         lastName: "Voip",
         countrycode: "US"
     };
