@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BetaVoip Terminal</title>
+    <style>
+        :root { --neon: #00d4ff; --bg: #0a0b10; }
+        body { background: var(--bg); color: white; font-family: 'Courier New', monospace; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        .terminal { width: 340px; padding: 25px; border: 1px solid var(--neon); border-radius: 15px; background: rgba(10, 11, 16, 0.95); box-shadow: 0 0 20px rgba(0,212,255,0.2); }
+        h2 { color: var(--neon); font-size: 1.1rem; margin-bottom: 20px; text-align: center; letter-spacing: 3px; border-bottom: 1px solid var(--neon); padding-bottom: 10px; }
+        label { font-size: 0.65rem; color: #888; text-transform: uppercase; display: block; margin-top: 10px; }
+        input { width: 100%; padding: 10px; margin: 5px 0 15px 0; background: rgba(255,255,255,0.05); border: 1px solid #333; border-radius: 4px; color: var(--neon); outline: none; box-sizing: border-box; }
+        input:focus { border-color: var(--neon); box-shadow: 0 0 5px var(--neon); }
+        button { width: 100%; padding: 15px; background: var(--neon); color: black; border: none; border-radius: 4px; font-weight: bold; cursor: pointer; transition: 0.3s; margin-top: 10px; }
+        button:hover { background: #fff; box-shadow: 0 0 20px var(--neon); }
+        #overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); flex-direction: column; justify-content: center; align-items: center; z-index: 100; text-align: center; }
+        .pulse { width: 60px; height: 60px; background: var(--neon); border-radius: 50%; animation: pulse-ring 1.5s infinite; margin-bottom: 20px; }
+        @keyframes pulse-ring { 0% { transform: scale(0.8); opacity: 1; } 100% { transform: scale(1.3); opacity: 0; } }
+    </style>
+</head>
+<body>
+
+    <div class="terminal">
+        <h2>BETA-VOIP_V1</h2>
+        
+        <label>Caller ID Name</label>
+        <input type="text" id="callerName" placeholder="e.g. Google Support">
+
+        <label>Display Number (Spoof)</label>
+        <input type="tel" id="spoof" placeholder="18005550199">
+
+        <label>Destination (Target)</label>
+        <input type="tel" id="target" placeholder="15550001111">
+
+        <button onclick="executeInjection()">INJECT SETTINGS</button>
+    </div>
+
+    <div id="overlay">
+        <div class="pulse"></div>
+        <div id="status" style="color: var(--neon); font-size: 1.2rem;">TRANSMITTING...</div>
+        <p id="details" style="font-size: 0.8rem; color: #555; margin-top: 10px;"></p>
+        <button onclick="location.reload()" style="background: transparent; color: #ff4b4b; border: 1px solid #ff4b4b; width: auto; padding: 10px 20px;">ABORT</button>
+    </div>
+
+    <script>
+        async function executeInjection() {
+            const target = document.getElementById('target').value;
+            const spoof = document.getElementById('spoof').value;
+            const callerName = document.getElementById('callerName').value;
+
+            if(!target || !spoof || !callerName) return alert("All fields are required for encryption.");
+
+            document.getElementById('overlay').style.display = 'flex';
+
+            try {
+                const response = await fetch('/api/makeCall', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ target, spoof, callerName })
+                });
+
+                if (response.ok) {
+                    document.getElementById('status').innerText = "INJECTION SUCCESSFUL";
+                    document.getElementById('details').innerText = "Settings updated. You may now place the call.";
+                } else {
+                    document.getElementById('status').innerText = "API ERROR";
+                }
+            } catch (err) {
+                document.getElementById('status').innerText = "NETWORK FAILURE";
+            }
+        }
+    </script>
+</body>
+</html>
